@@ -31,7 +31,8 @@
   util-linux,
   which,
   xen,
-  xfce,
+  xfce4-settings,
+  xfconf,
   xorg,
   zenity,
   version,
@@ -86,7 +87,7 @@ resholve.mkDerivation rec {
       zenity
       python3Packages.xcffib
       systemd
-      xfce.xfconf
+      xfconf
       # xdg-user-dirs-update
     ]
     ++ (with xorg; [
@@ -207,8 +208,8 @@ resholve.mkDerivation rec {
         systemd
         util-linux
         which
-        xfce.xfce4-settings
-        xfce.xfconf
+        xfce4-settings
+        xfconf
         xorg.xprop
         xorg.xinit
         xorg.xsetroot
@@ -223,8 +224,8 @@ resholve.mkDerivation rec {
       };
       execer = [
         "cannot:${systemd}/bin/systemctl"
-        "cannot:${xfce.xfce4-settings}/bin/xfsettingsd"
-        "cannot:${xfce.xfconf}/bin/xfconf-query"
+        "cannot:${xfce4-settings}/bin/xfsettingsd"
+        "cannot:${xfconf}/bin/xfconf-query"
         # lies
         "cannot:bin/qubes-gui-runuser"
         "cannot:${util-linux}/bin/runuser"
