@@ -96,6 +96,28 @@
       nixosConfig = nixosConfigurations.nixos;
     };
     iso = nixosConfigurations.iso.config.system.build.isoImage;
-    packages.x86_64-linux = pkgs;
+
+    # Expose only the custom qubes packages (not all of nixpkgs) so that
+    # `nix build .#rpm` resolves to the template RPM above rather than being
+    # shadowed by `pkgs.rpm` within nixpkgs.
+    #
+    # The `update.sh` script uses `nix-update` to target patching.
+    packages.x86_64-linux = {
+      inherit
+        (pkgs)
+        qubes-core-qubesdb
+        qubes-core-vchan-xen
+        qubes-core-qrexec
+        qubes-core-agent-linux
+        qubes-linux-utils
+        qubes-gui-common
+        qubes-gui-agent-linux
+        qubes-sshd
+        qubes-usb-proxy
+        qubes-gpg-split
+        nix-update
+        ;
+      inherit rpm iso;
+    };
   };
 }

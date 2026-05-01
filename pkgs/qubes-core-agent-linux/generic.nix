@@ -417,7 +417,7 @@ in
             "cannot:bin/qubes-vmexec"
             "cannot:lib/qubes/init/bind-dirs.sh"
             "cannot:lib/qubes/qfile-unpacker"
-            "cannot:${qubes-core-qrexec}/bin/qrexec-client-vm"
+            "cannot:${qubes-core-qrexec}/lib/qubes/qrexec-client-vm"
             "cannot:${zenity}/bin/zenity"
           ]
           ++ lib.optional enableNetworking "cannot:${iproute2}/bin/ip";
