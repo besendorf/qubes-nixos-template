@@ -15,6 +15,7 @@
   git,
   gnused,
   libgbm,
+  libunistring,
   pam,
   patch,
   pipewire,
@@ -83,6 +84,7 @@ resholve.mkDerivation rec {
       coreutils
       qubes-core-vchan-xen
       qubes-core-qubesdb
+      libunistring
       pam
       zenity
       python3Packages.xcffib

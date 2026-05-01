@@ -157,6 +157,11 @@ in
 
       # skip installing qfile-unpacker / bin-qfile-unpacker as SUID
       sed -i 's/-m 4755/-m 755/g' qubes-rpc/Makefile
+
+      # 4.3 unified qvm-{copy,move}{,-to-vm} into one qvm-copy script (others
+      # become hardlinks at install time) and made paths relative via $scriptdir.
+      # Rewrite back to absolute paths so the existing resholve fix entries match.
+      sed -i 's#"\$scriptdir/qubes/#"/usr/lib/qubes/#g' qubes-rpc/qvm-copy
     '';
 
     buildPhase = ''
@@ -401,6 +406,9 @@ in
         keep = {
           source = ["$file_name"];
           "$rc" = true;
+          # 4.3 mount-dirs.sh uses these as bool-flag commands (`if $mount_home; then`)
+          "$mount_home" = true;
+          "$mount_usr_local" = true;
           "/rw/config/qubes_ip_change_hook" = enableNetworking;
           "/rw/config/qubes-ip-change-hook" = enableNetworking;
           "/run/wrappers/bin/qfile-unpacker" = true;
@@ -418,6 +426,7 @@ in
             "cannot:lib/qubes/init/bind-dirs.sh"
             "cannot:lib/qubes/qfile-unpacker"
             "cannot:${qubes-core-qrexec}/lib/qubes/qrexec-client-vm"
+            "cannot:${qubes-core-qrexec}/bin/qrexec-client-vm"
             "cannot:${zenity}/bin/zenity"
           ]
           ++ lib.optional enableNetworking "cannot:${iproute2}/bin/ip";

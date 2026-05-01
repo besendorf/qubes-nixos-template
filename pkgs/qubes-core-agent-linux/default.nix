@@ -3,7 +3,7 @@
   enableNetworking ? false,
 }:
 callPackage ./generic.nix {
-  version = "4.2.45";
-  hash = "sha256-Eb7ueu1EVnVgudY98od4nsYjxi0jynsbwYXglL7tynA=";
+  version = "4.3.40";
+  hash = "sha256-QT3DNX2lh1vTmfgGK6kXDLFqtImFc4zVKsofCUIPvXs=";
   inherit enableNetworking;
 }
