@@ -7,6 +7,7 @@
   autoconf,
   automake,
   bash,
+  dbus,
   gnugrep,
   coreutils,
   libtool,
@@ -82,6 +83,7 @@ resholve.mkDerivation rec {
   buildInputs =
     [
       coreutils
+      dbus
       qubes-core-vchan-xen
       qubes-core-qubesdb
       libunistring
@@ -94,7 +96,9 @@ resholve.mkDerivation rec {
     ]
     ++ (with xorg; [
       libXcomposite
+      libXcursor
       libXdamage
+      libXfixes
       xinit
       xrandr
       xprop
@@ -205,6 +209,7 @@ resholve.mkDerivation rec {
         "${qubes-core-agent-linux}/lib/qubes/init/functions"
         bash
         coreutils
+        dbus
         gnused
         qubes-core-qubesdb
         systemd
