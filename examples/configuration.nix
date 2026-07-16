@@ -4,6 +4,9 @@
   pkgs,
   ...
 }: {
+  # Pin the compatibility baseline used when this template was introduced.
+  system.stateVersion = "26.05";
+
   nix = {
     settings = {
       experimental-features = ["nix-command" "flakes"];
