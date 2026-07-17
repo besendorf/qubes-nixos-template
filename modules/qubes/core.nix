@@ -199,6 +199,8 @@ in
         systemd.sockets."qubes-updates-proxy-forwarder" = {
           # ensure the socket is activated, since Install is ignored
           wantedBy = ["multi-user.target"];
+          requires = ["qubes-sysinit.service"];
+          after = ["qubes-sysinit.service"];
         };
 
         systemd.services."qubes-updates-proxy-forwarder@" = {
@@ -215,13 +217,6 @@ in
           };
         };
 
-        # since there is no global nix proxy setting, add aliases which will
-        # inherit the proxy settings from nix-daemon set by update-proxy-configs
-        environment.interactiveShellInit = ''
-          alias nix="all_proxy=\$(systemctl show nix-daemon -p Environment | grep -oP '(?<=all_proxy=)[^ ]*') nix"
-          alias nix-shell="all_proxy=\$(systemctl show nix-daemon -p Environment | grep -oP '(?<=all_proxy=)[^ ]*') nix-shell"
-          alias nixos-rebuild="all_proxy=\$(systemctl show nix-daemon -p Environment | grep -oP '(?<=all_proxy=)[^ ]*') nixos-rebuild"
-        '';
       }
     );
   }

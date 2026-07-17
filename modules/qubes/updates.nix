@@ -49,10 +49,47 @@ with lib; {
     )
     (
       let
+        proxyEnvironment = ''
+          if [ -e /run/qubes-service/updates-proxy-setup ]; then
+            qubes_proxy=http://127.0.0.1:8082/
+            proxy_default="''${all_proxy:-''${ALL_PROXY:-$qubes_proxy}}"
+
+            export http_proxy="''${http_proxy:-''${HTTP_PROXY:-$proxy_default}}"
+            export https_proxy="''${https_proxy:-''${HTTPS_PROXY:-$proxy_default}}"
+            export all_proxy="$proxy_default"
+            export HTTP_PROXY="''${HTTP_PROXY:-$http_proxy}"
+            export HTTPS_PROXY="''${HTTPS_PROXY:-$https_proxy}"
+            export ALL_PROXY="''${ALL_PROXY:-$all_proxy}"
+
+            no_proxy_default="''${no_proxy:-''${NO_PROXY:-127.0.0.1,localhost}}"
+            export no_proxy="$no_proxy_default"
+            export NO_PROXY="''${NO_PROXY:-$no_proxy}"
+          fi
+        '';
+
+        nixProxyWrappers = pkgs.runCommand "qubes-nix-proxy-wrappers" {
+          nativeBuildInputs = [pkgs.makeWrapper];
+          meta.priority = 1;
+        } ''
+          mkdir -p "$out/bin"
+
+          for program in ${config.nix.package.out}/bin/*; do
+            [ -x "$program" ] || continue
+            name=$(${pkgs.coreutils}/bin/basename "$program")
+            makeWrapper "$program" "$out/bin/$name" \
+              --run ${lib.escapeShellArg proxyEnvironment}
+          done
+
+          makeWrapper ${config.system.build.nixos-rebuild}/bin/nixos-rebuild \
+            "$out/bin/nixos-rebuild" \
+            --run ${lib.escapeShellArg proxyEnvironment}
+        '';
+
         upgradesStatusNotify = pkgs.writeShellScriptBin "upgrades-status-notify" ''
           set -e
 
           export PATH=${lib.makeBinPath config.services.qubes.updates.extraPackages}:$PATH
+          ${proxyEnvironment}
 
           if [ "$1" = "started-by-init" ]; then
               true "INFO: Started by systemd unit (timer.) Continuing..."
@@ -84,15 +121,14 @@ with lib; {
         '';
 
         getPackages = pkgs.writeShellScriptBin "qubes-nixos-get-packages" ''
+          ${proxyEnvironment}
           empty=$(${config.nix.package.out}/bin/nix build --impure --no-link --print-out-paths --expr '(with import <nixpkgs> { }; pkgs.runCommand "empty" { } "mkdir -p $out")')
           ${config.nix.package.out}/bin/nix store diff-closures "$empty" /run/current-system | ${pkgs.gawk}/bin/awk '/→ [0-9]/ && !/nixos/' |  ${pkgs.gnused}/bin/sed 's/\x1b\[[0-9;]*m//g'
         '';
 
         nixosRebuildWrapper = pkgs.writeShellScriptBin "qubes-nixos-rebuild" ''
           export PATH=${lib.makeBinPath config.services.qubes.updates.extraPackages}:$PATH
-
-          # in update-proxy-configs we might set proxy via an override
-          export all_proxy=$(systemctl show nix-daemon -p Environment | grep -oP '(?<=all_proxy=)[^ ]*')
+          ${proxyEnvironment}
 
           # by default switch to the new generation, updating the system
           if [ $# -eq 0 ]; then
@@ -119,8 +155,10 @@ with lib; {
         };
       in {
         environment.systemPackages = [
+          nixProxyWrappers
           nixosRebuildWrapper
         ];
+        system.build.qubesNixProxyWrappers = nixProxyWrappers;
         services.qubes.qrexec.packages = [vmexec];
         systemd.services.qubes-update-check = {
           serviceConfig = {
