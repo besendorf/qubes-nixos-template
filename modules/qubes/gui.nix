@@ -37,6 +37,16 @@ in
          done
          unset f
         fi
+
+        # The NixOS X session wrapper starts xdg-desktop-autostart.target
+        # before qubes-session runs.  Set the Qubes desktop identities in the
+        # user manager now so OnlyShowIn=X-QUBES entries are not skipped.
+        VMTYPE="$(${pkgs.qubes-core-qubesdb}/bin/qubesdb-read /qubes-vm-type)"
+        UPDTYPE="$(${pkgs.qubes-core-qubesdb}/bin/qubesdb-read /qubes-vm-updateable)"
+        [ "$UPDTYPE" = "True" ] && UPDTYPE="UpdateableVM" || UPDTYPE="NonUpdateableVM"
+        ${pkgs.systemd}/bin/systemctl --user set-environment \
+          XDG_CURRENT_DESKTOP="QUBES:X-QUBES:X-$VMTYPE:X-$UPDTYPE"
+        unset VMTYPE UPDTYPE
       '';
       services.xserver.displayManager.session = [
         {
@@ -52,6 +62,14 @@ in
       systemd.user.targets.nixos-fake-graphical-session = {
         requires = ["xdg-desktop-autostart.target" "graphical-session.target"];
         before = ["xdg-desktop-autostart.target" "graphical-session.target"];
+      };
+      # The generated autostart service can apply the Qubes keyboard layout
+      # before desktop initialization has settled, after which xfsettingsd
+      # resets it. This drop-in delays only the initial daemon invocation;
+      # subsequent QubesDB layout changes are still applied immediately.
+      systemd.user.services."app-qubes\\x2dkeymap@autostart" = {
+        overrideStrategy = "asDropin";
+        serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/sleep 3";
       };
       # adding to system packages will cause their xdg autostart files to be picked up
       environment.systemPackages = [
