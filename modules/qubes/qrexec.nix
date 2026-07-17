@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  qrexec_services = ["${pkgs.qubes-core-qrexec}/etc/qubes-rpc" "${pkgs.qubes-core-agent-linux}/etc/qubes-rpc"] ++ map (x: "${x}/etc/qubes-rpc") config.services.qubes.qrexec.packages;
+  qrexec_services = ["${pkgs.qubes-core-qrexec}/etc/qubes-rpc" "${config.services.qubes.core.package}/etc/qubes-rpc"] ++ map (x: "${x}/etc/qubes-rpc") config.services.qubes.qrexec.packages;
 in
   with lib; {
     options.services.qubes.qrexec = {

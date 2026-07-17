@@ -14,18 +14,21 @@ in
         type = types.package;
         description = "qubes-core-agent-linux package as configured by the qubes module options";
         internal = true;
-        defaultText = literalExpression "pkgs.qubes-core-agent-linux";
-        default = pkgs.qubes-core-agent-linux;
+        defaultText = literalExpression ''
+          if config.services.qubes.core.networking
+          then pkgs.qubes-core-agent-linux.override { enableNetworking = true; }
+          else pkgs.qubes-core-agent-linux
+        '';
+        default =
+          if cfg.networking
+          then pkgs.qubes-core-agent-linux.override {enableNetworking = true;}
+          else pkgs.qubes-core-agent-linux;
       };
     };
     config = mkIf cfg.enable (
       let
-        qubes-core-agent-linux =
-          if cfg.networking
-          then (pkgs.qubes-core-agent-linux.override {enableNetworking = true;})
-          else (cfg.package.default);
+        qubes-core-agent-linux = cfg.package;
       in {
-        services.qubes.core.package = qubes-core-agent-linux;
         services.qubes.db.enable = true;
 
         # TODO make the username configurable?
