@@ -42,7 +42,7 @@ in
         description = "Qubes remote exec agent";
         requires = ["qubes-db.service"];
         wantedBy = ["multi-user.target"];
-        after = ["systemd-modules-load.service" "xendriverdomain.service" "systemd-user-sessions.service"];
+        after = ["qubes-db.service" "systemd-modules-load.service" "xendriverdomain.service" "systemd-user-sessions.service"];
         environment = {
           QREXEC_SERVICE_PATH = concatStringsSep ":" qrexec_services;
           QREXEC_MULTIPLEXER_PATH = "${pkgs.qubes-core-qrexec}/lib/qubes/qubes-rpc-multiplexer";

@@ -68,6 +68,7 @@ in
       systemd.services.qubes-gui-agent = {
         #
         requires = ["qubes-db.service"];
+        after = ["qubes-db.service"];
         # ensure the service is started on boot, since Install is ignored
         wantedBy = ["multi-user.target"];
         serviceConfig = {
