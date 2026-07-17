@@ -46,17 +46,25 @@ qvm-start nixos
 qvm-run nixos xterm
 ```
 
-## issues with the qubes updates proxy
+## qubes updates proxy
 
 by default a qubes template does not have direct internet access and instead uses the qubes updates proxy
-over qrpc. nix does not have a concept of a global proxy setting and as such is tricky to correctly 
-configure in a way that doesn't involve simply setting `all_proxy` everywhere. 
+over qrpc. leave the template's networking set to "none"; Qubes forwards connections to
+`127.0.0.1:8082` to the UpdateVM selected by the `qubes.UpdatesProxy` policy in dom0.
 
-as a compromise the packaging sets `all_proxy` for nix-daemon but not all downloads go through nix-daemon. the qubes packaging in this repo creates aliases for interactive shells that wrap a few of the common nix programs to pass proxy info. however this leaves various edge cases, a few of which are noted below. remember that you can always set `all_proxy` in your environment manually or in the worst case, switch to giving the template direct internet access.
+the template automatically supplies this proxy to the nix daemon, nix commands (including legacy
+commands such as `nix-shell`), `sudo nix`, `nixos-rebuild`, and Qubes-triggered update checks. an
+explicit proxy set by the caller takes precedence. app qubes do not enable the Qubes updates proxy
+by default, so the wrappers leave their environment unchanged and normal NetVM networking continues
+to work.
 
-### issues with sudo nix commands
-
-due to the above, you're likely to run into issues when running `sudo nix...` - in these cases you can instead first get an interactive root shell e.g. via `sudo su`.
+if downloads fail, first check that the local forwarder and the Qubes service marker are available:
+```
+systemctl status qubes-updates-proxy-forwarder.socket
+test -e /run/qubes-service/updates-proxy-setup
+curl --proxy http://127.0.0.1:8082/ https://cache.nixos.org/
+```
+if the curl command fails, check the `qubes.UpdatesProxy` policy and its target UpdateVM in dom0.
 
 ### issues with remote nix configs on github
 

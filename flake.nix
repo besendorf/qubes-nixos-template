@@ -96,6 +96,21 @@
       nixosConfig = nixosConfigurations.nixos;
     };
     iso = nixosConfigurations.iso.config.system.build.isoImage;
+    checks.x86_64-linux.nix-proxy-integration =
+      assert lib.elem "qubes-sysinit.service" nixosConfigurations.nixos.config.systemd.sockets.qubes-updates-proxy-forwarder.after;
+        pkgs.runCommand "nix-proxy-integration-check" {} ''
+          wrappers=${nixosConfigurations.nixos.config.system.build.qubesNixProxyWrappers}
+
+          for program in nix nix-shell nix-store nixos-rebuild; do
+            test -x "$wrappers/bin/$program"
+          done
+
+          grep -q /run/qubes-service/updates-proxy-setup "$wrappers/bin/nix"
+          grep -q http://127.0.0.1:8082/ "$wrappers/bin/nix"
+          "$wrappers/bin/nix" --version >/dev/null
+          touch "$out"
+        '';
+
     packages.x86_64-linux = pkgs;
   };
 }
