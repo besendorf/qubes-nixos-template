@@ -134,6 +134,11 @@ resholve.mkDerivation rec {
     # this will point to the unresholved package but it is not an
     # issue since our wrapper only refers to external resources
     substituteInPlace "$out/etc/xdg/autostart/qubes-qrexec-fork-server.desktop" --replace '/usr/bin/qrexec-fork-server' "$out/bin/qrexec-fork-server"
+    substituteInPlace "$out/etc/xdg/autostart/qubes-keymap.desktop" --replace '/usr/lib/qubes/qubes-keymap.sh' "$out/lib/qubes/qubes-keymap.sh"
+    substituteInPlace "$out/usr/lib/qubes/qubes-keymap.sh" \
+      --replace '/usr/bin/qubesdb-read' '${qubes-core-qubesdb}/bin/qubesdb-read' \
+      --replace 'while qubesdb-watch ' 'while ${qubes-core-qubesdb}/bin/qubesdb-watch ' \
+      --replace '        setxkbmap ' '        ${xorg.setxkbmap}/bin/setxkbmap '
 
     # these are nested within runuser calls, easier to just substituteInPlace
     # and pretend to resholve that runuser is not executing it's args
