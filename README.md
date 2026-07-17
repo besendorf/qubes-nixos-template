@@ -34,7 +34,7 @@ a fresh hvm template.
 2. create a new qube, select type "TemplateVM", template "(none)", name "nixos", networking "(none)", tick "Launch settings after creation", press "OK" button
 3. in the settings for the new qube, go to the advanced tab, change the kernel to "(provided by qube)" and virtualization mode to "HVM", press "Apply" button
 4. click the "boot qube from CD-ROM" button, click the "from file in qube" option and browse for the downloaded iso. press "OK" button, the qube will launch a boot console
-5. wait for about 15s then press enter to begin the install ( the boot console will say "Press Enter to continue" )
+5. wait for the installer to display its target disk, then type the full device path shown to confirm that the disk may be erased
 6. the system will auto shutdown on successful install
 7. open the settings for the qube, go to the advanced tab, change the kernel to "default (...)" and virtualization mode to "default (PVH)"
 8. start the template and wait about 30s ( see qrexec notes. )

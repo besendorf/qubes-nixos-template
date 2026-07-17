@@ -33,6 +33,7 @@
       set -euo pipefail
 
       echo "Setting up disks..."
+      DEVICE_MAIN=""
       for i in $(lsblk -pln -o NAME,TYPE | grep disk | awk '{ print $1 }'); do
         if [[ "$i" == "/dev/fd0" ]]; then
           echo "$i is a floppy, skipping..."
@@ -49,8 +50,24 @@
         echo "ERROR: No usable disk found on this machine!"
         exit 1
       else
-        echo "Found $DEVICE_MAIN, erasing..."
+        echo "Found installation target: $DEVICE_MAIN"
       fi
+
+      read -r -p "Type $DEVICE_MAIN to erase it and continue: " confirmed_device
+      if [[ "$confirmed_device" != "$DEVICE_MAIN" ]]; then
+        echo "ERROR: Installation cancelled; confirmation did not match $DEVICE_MAIN."
+        exit 1
+      fi
+
+      partition_path() {
+        if [[ "$1" =~ [0-9]$ ]]; then
+          printf '%sp%s\n' "$1" "$2"
+        else
+          printf '%s%s\n' "$1" "$2"
+        fi
+      }
+      DEVICE_BOOT=$(partition_path "$DEVICE_MAIN" 1)
+      DEVICE_ROOT=$(partition_path "$DEVICE_MAIN" 3)
 
       mebibyte=$(( 1024 * 1024 ))
       round_to_nearest() {
@@ -70,14 +87,14 @@
           align-check optimal 3 \
           print
 
-      mkfs.ext4 -b ${blockSize} -L ${label} "$DEVICE_MAIN"3
+      mkfs.ext4 -b ${blockSize} -L ${label} "$DEVICE_ROOT"
 
       mkdir /mnt
-      mount "$DEVICE_MAIN"3 /mnt
+      mount "$DEVICE_ROOT" /mnt
 
       mkdir -p /mnt/boot
-      mkfs.vfat -n ESP "$DEVICE_MAIN"1
-      mount "$DEVICE_MAIN"1 /mnt/boot
+      mkfs.vfat -n ESP "$DEVICE_BOOT"
+      mount "$DEVICE_BOOT" /mnt/boot
 
       echo "Installing the system..."
       nixos-install --no-channel-copy --no-root-password --option substituters "" --system ${targetSystem.config.system.build.toplevel}
