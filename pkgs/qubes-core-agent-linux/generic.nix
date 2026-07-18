@@ -97,6 +97,8 @@ in
       inherit hash;
     };
 
+    patches = [./dynamic-rootfs-offset.patch];
+
     nativeBuildInputs =
       [
         bash
