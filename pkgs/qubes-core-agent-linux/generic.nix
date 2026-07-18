@@ -56,6 +56,15 @@
   version,
   hash,
 }: let
+  pythonProgramDeps =
+    [qubes-core-qubesdb]
+    ++ (with python3Packages; [dbus-python pygobject3 pyxdg]);
+  # qubes-core-qubesdb contains a Python extension but is built with
+  # stdenv.mkDerivation, so makePythonPath does not recognize it as a Python
+  # module.  Add its site-packages directory explicitly.
+  pythonProgramPath =
+    "${qubes-core-qubesdb}/${python3.sitePackages}:"
+    + python3Packages.makePythonPath pythonProgramDeps;
   scripts_using_functions = [
     "lib/qubes/init/qubes-early-vm-config.sh"
     "lib/qubes/init/qubes-sysinit.sh"
@@ -205,7 +214,7 @@ in
             DIST=nixos \
             PYTHON=${python3}/bin/python3
         make -C app-menu install DESTDIR="$out" install BINDIR=/bin LIBDIR=/lib
-        make -C misc install DESTDIR="$out" LIBDIR=/lib SYSLIBDIR=/lib
+        make -C misc install DESTDIR="$out" BINDIR=/bin LIBDIR=/lib SYSLIBDIR=/lib
         make -C qubes-rpc DESTDIR="$out" BINDIR=/bin LIBDIR=/lib install
         make -C qubes-rpc/caja DESTDIR="$out" BINDIR=/bin LIBDIR=/lib install
         make -C qubes-rpc/kde DESTDIR="$out" BINDIR=/bin LIBDIR=/lib install
@@ -232,6 +241,66 @@ in
 
         # Fixup paths
         substituteInPlace "$out/bin/qubes-session-autostart" --replace "QUBES_XDG_CONFIG_DROPINS = '/etc/qubes/autostart'" "QUBES_XDG_CONFIG_DROPINS = \"$out/etc/qubes/autostart\""
+
+        # Qubes invokes this RPC service after a template update.  Keep the
+        # hook directory in the package instead of assuming a mutable /etc.
+        substituteInPlace "$out/etc/qubes-rpc/qubes.PostInstall" \
+          --replace-fail '/etc/qubes/post-install.d/*.sh' "$out/etc/qubes/post-install.d/*.sh" \
+          --replace-fail \
+            'for script in ' \
+            "export PATH=\"$out/bin:${qubes-core-qubesdb}/bin:${systemd}/bin:${coreutils}/bin:${gnugrep}/bin:${util-linux}/bin:\$PATH\"
+
+for script in "
+
+        # The app-menu post-install hook and its helper use FHS paths
+        # upstream.  Point them at the package and the qrexec package so the
+        # same hook works from the immutable Nix store.
+        substituteInPlace "$out/etc/qubes/post-install.d/10-qubes-core-agent-appmenus.sh" \
+          --replace-fail '/usr/lib/qubes/qubes-trigger-sync-appmenus.sh' "$out/lib/qubes/qubes-trigger-sync-appmenus.sh"
+        substituteInPlace "$out/lib/qubes/qubes-trigger-sync-appmenus.sh" \
+          --replace-fail '/usr/lib/qubes/init/functions' "$out/lib/qubes/init/functions" \
+          --replace-fail '/usr/lib/qubes/qrexec-client-vm' '${qubes-core-qrexec}/lib/qubes/qrexec-client-vm' \
+          --replace-fail '/etc/qubes-rpc/qubes.GetAppmenus' "$out/etc/qubes-rpc/qubes.GetAppmenus"
+
+        # Feature advertisement also assumes an FHS installation.  In a
+        # TemplateVM the persistent RPC services are the ones in this output.
+        substituteInPlace "$out/etc/qubes/post-install.d/10-qubes-core-agent-features.sh" \
+          --replace-fail '/usr/share/qubes/marker-vm' "$out/share/qubes/marker-vm" \
+          --replace-fail '/usr/bin/qubes-gui' '/run/current-system/sw/bin/qubes-gui'
+        substituteInPlace "$out/etc/qubes/post-install.d/10-qubes-core-agent-rpc.sh" \
+          --replace-fail 'services_dir=/etc/qubes-rpc' "services_dir=$out/etc/qubes-rpc"
+
+        # qubes.StartApp is outside $out/bin, so the Python setup hook does
+        # not discover it automatically.  Give it a valid interpreter now;
+        # postFixup wraps it with the package's Python dependencies below.
+        substituteInPlace "$out/etc/qubes-rpc/qubes.StartApp" \
+          --replace-fail '#!/usr/bin/python3 --' '#!${python3}/bin/python3' \
+          --replace-fail \
+            'import sys, os, pwd' \
+            'import sys, os, pwd
+
+# qrexec services do not run a login shell, so they do not inherit the NixOS
+# profile paths.  pyxdg snapshots XDG_DATA_DIRS when it is imported below.
+if "XDG_DATA_DIRS" not in os.environ:
+    profile_home = os.path.expanduser("~")
+    profile_state = os.environ.get(
+        "XDG_STATE_HOME", os.path.join(profile_home, ".local", "state")
+    )
+    profile_user = pwd.getpwuid(os.getuid()).pw_name
+    os.environ["XDG_DATA_DIRS"] = ":".join((
+        os.path.join(profile_home, ".nix-profile", "share"),
+        os.path.join(profile_state, "nix", "profile", "share"),
+        os.path.join("/etc/profiles/per-user", profile_user, "share"),
+        "/nix/var/nix/profiles/default/share",
+        "/run/current-system/sw/share",
+    ))'
+
+        # Nix profiles can contain XDG paths that do not exist.  They are not
+        # AppVM-local applications and should be skipped without noisy stat
+        # errors during qubes.GetAppmenus.
+        substituteInPlace "$out/etc/qubes-rpc/qubes.GetAppmenus" \
+          --replace-fail '[ "$(stat -c %D "$dir")" = "$rw_devno" ]' \
+                         '[ -e "$dir" ] && [ "$(stat -c %D "$dir")" = "$rw_devno" ]'
 
         # we lied about qrexec-client-vm not execing :)
         substituteInPlace "$out/bin/qvm-copy" --replace "/usr/lib/qubes/qfile-agent" "$out/lib/qubes/qfile-agent"
@@ -442,17 +511,22 @@ in
       };
     };
 
-    pythonPath = with python3Packages; [dbus-python pygobject3 pyxdg];
-
     dontWrapGApps = true;
 
     preFixup = ''
       makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
-      buildPythonPath "$out $pythonPath"
     '';
 
     postFixup = ''
-      wrapPythonPrograms
+      # The Python setup hook does not treat this plain mkDerivation as a
+      # Python package, so make its import path explicit in every generated
+      # wrapper.  This includes both qubesagent from this output and the
+      # qubesdb extension from its own package.
+      makeWrapperArgs+=(
+        --prefix PYTHONPATH : "$out/${python3.sitePackages}:${pythonProgramPath}"
+      )
+      wrapPythonProgramsIn "$out/bin" ""
+      wrapPythonProgramsIn "$out/etc/qubes-rpc" ""
     '';
 
     meta = with lib; {
