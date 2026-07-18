@@ -12,7 +12,7 @@ mkdir -p "$store"
 nix \
   --extra-experimental-features 'nix-command flakes' \
   --store "$store" \
-  build "$repo_dir#rpm" \
+  build "path:$repo_dir#rpm" \
   --out-link "$result_link" \
   --print-build-logs \
   --option sandbox false

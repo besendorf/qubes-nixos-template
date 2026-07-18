@@ -122,6 +122,11 @@
           test -x "$resize_rpc"
           grep -Fq "$agent/lib/qubes/resize-rootfs" "$resize_rpc"
           ! grep -Fq /usr/lib/qubes/resize-rootfs "$resize_rpc"
+
+          resize_if_needed="$agent/lib/qubes/init/resize-rootfs-if-needed.sh"
+          grep -Fq 'root_device_name=''${root_device##*/}' "$resize_if_needed"
+          grep -Fq '/sys/class/block/$root_device_name/start' "$resize_if_needed"
+          ! grep -Fq 'boot_data_size=$((203 * 2 * 1024))' "$resize_if_needed"
           touch "$out"
         '';
 

@@ -1,0 +1,27 @@
+diff --git a/init/resize-rootfs-if-needed.sh b/init/resize-rootfs-if-needed.sh
+index 0d2e22d..578fa42 100755
+--- a/init/resize-rootfs-if-needed.sh
++++ b/init/resize-rootfs-if-needed.sh
+@@ -12,10 +12,18 @@
+ fi
+-
++
+ sysfs_xvda="/sys/class/block/xvda"
++root_device=$(readlink -f /dev/mapper/dmroot)
++root_device_name=${root_device##*/}
+-
++
+ # if root filesystem is already using (almost) the whole disk
+-# 203M for BIOS and /boot data
+-boot_data_size=$((203 * 2 * 1024))
++# Account for the actual data before the root partition instead of assuming
++# the standard Qubes 203M layout. NixOS hybrid images start root at 256M.
++if [ -r "/sys/class/block/$root_device_name/start" ]; then
++    boot_data_size=$(cat "/sys/class/block/$root_device_name/start")
++else
++    # The filesystem occupies the whole root device rather than a partition.
++    boot_data_size=0
++fi
+ # rootfs size is calculated on-the-fly. `df` doesn't work because it doesn't
+ # include fs overhead, and calculating a static size for overhead doesn't work
+ # because that can change dynamically over the filesystem's lifetime.

@@ -29,6 +29,10 @@
       # QEMU falls back to TCG when KVM is unavailable. Requiring the KVM
       # feature prevents builds in Qubes VMs before QEMU can do so.
       requiredSystemFeatures = [];
+
+      # QEMU's TCG fallback can crash in the virtiofs I/O path with multiple
+      # vCPUs. Image finalization is I/O-bound, so keep this VM single-core.
+      enableParallelBuilding = false;
     });
 in
   pkgs.stdenvNoCC.mkDerivation {
