@@ -96,6 +96,47 @@
       nixosConfig = nixosConfigurations.nixos;
     };
     iso = nixosConfigurations.iso.config.system.build.isoImage;
+    checks.x86_64-linux.application-menu-integration = let
+      agent = pkgs.qubes-core-agent-linux;
+      systemPath = nixosConfigurations.nixos.config.system.path;
+    in
+      pkgs.runCommand "application-menu-integration-check" {} ''
+        test -x ${agent}/bin/qvm-features-request
+        ${agent}/bin/qvm-features-request --help >/dev/null
+
+        start_app=${agent}/etc/qubes-rpc/qubes.StartApp
+        test -x "$start_app"
+        if "$start_app" >start-app.out 2>start-app.err; then
+          echo "qubes.StartApp unexpectedly accepted a missing argument" >&2
+          exit 1
+        fi
+        grep -Fq 'This service requires an argument' start-app.err
+        ! grep -Fq /usr/bin/python3 "$start_app"
+        grep -Fq /run/current-system/sw/share \
+          ${agent}/etc/qubes-rpc/.qubes.StartApp-wrapped
+
+        post_install=${agent}/etc/qubes-rpc/qubes.PostInstall
+        sync_hook=${agent}/lib/qubes/qubes-trigger-sync-appmenus.sh
+        grep -Eq '/nix/store/[^/]+-qubes-core-agent-linux[^/]*/etc/qubes/post-install.d/' "$post_install"
+        grep -Eq '/nix/store/[^/]+-qubes-core-agent-linux[^/]*/etc/qubes-rpc/qubes.GetAppmenus' "$sync_hook"
+        grep -Fq '${agent}/bin/qvm-features-request' "$post_install" ||
+          grep -Eq 'PATH="/nix/store/[^/]+-qubes-core-agent-linux[^/]*/bin:' "$post_install"
+        ! grep -Fq /usr/lib/qubes/qubes-trigger-sync-appmenus.sh \
+          ${agent}/etc/qubes/post-install.d/10-qubes-core-agent-appmenus.sh
+
+        for list in \
+          ${./appmenus}/whitelisted-appmenus.list \
+          ${./appmenus}/vm-whitelisted-appmenus.list \
+          ${./appmenus}/netvm-whitelisted-appmenus.list; do
+          while IFS= read -r desktop_id; do
+            test -n "$desktop_id"
+            test -f "${systemPath}/share/applications/$desktop_id"
+          done < "$list"
+        done
+
+        touch "$out"
+      '';
+
     packages.x86_64-linux = pkgs;
   };
 }

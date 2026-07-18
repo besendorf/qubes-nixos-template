@@ -50,7 +50,7 @@ in
       mkdir -p qubeized_images/nixos
       ln -s ${rootImg}/nixos.img qubeized_images/nixos/root.img
 
-      ln -s "appmenus_generic" appmenus
+      cp -r ${../appmenus} appmenus
       cp template_generic.conf template.conf
 
       date +"%Y%m%d%H%M" > build_timestamp_nixos

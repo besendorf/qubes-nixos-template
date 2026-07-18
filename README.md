@@ -58,6 +58,33 @@ as a compromise the packaging sets `all_proxy` for nix-daemon but not all downlo
 
 due to the above, you're likely to run into issues when running `sudo nix...` - in these cases you can instead first get an interactive root shell e.g. via `sudo su`.
 
+## application menus
+
+New template RPMs select `Qubes Run Terminal` and `XTerm` by default. To make
+applications installed later available, open the qube's **Settings**, select
+**Applications**, and use **Refresh Applications**. Move the applications you
+want to the shown list and apply the change.
+
+The equivalent command-line refresh must be run in dom0:
+
+```console
+qvm-sync-appmenus <QUBE_NAME>
+```
+
+Refresh both the TemplateVM and an existing AppVM after changing the
+TemplateVM's installed packages:
+
+```console
+qvm-sync-appmenus nixos
+qvm-sync-appmenus <APPVM_NAME>
+```
+
+Qubes stores the selected application IDs in dom0. Consequently, rebuilding an
+already-installed template cannot replace a stale selection left by an older
+RPM. Refresh it once and reselect the applications in **Settings**. See the
+[Qubes app menu troubleshooting guide](https://doc.qubes-os.org/en/latest/user/troubleshooting/app-menu-shortcut-troubleshooting.html)
+for inspecting or replacing the selection with `qvm-appmenus`.
+
 ### issues with remote nix configs on github
 
 you may run into issues if you pull a remote nix config over ssh from github. to workaround
@@ -85,10 +112,10 @@ Host github.com
 - usb proxy
 - building an rpm for the templatevm
 - update proxy
+- application menu discovery, synchronization, and launching
 
 ### what doesn't work / untested
 - qrexec startup isn't clean, commands can fail initially
-- populating application shortcuts
 - using a non-xen provided kernel
 - using as netvm or usbvm
 - time sync via rpc ( currently handled is systemd-timesyncd, but per vm ntp sync creates more attack surface area? )
