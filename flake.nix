@@ -96,6 +96,19 @@
       nixosConfig = nixosConfigurations.nixos;
     };
     iso = nixosConfigurations.iso.config.system.build.isoImage;
+    checks.x86_64-linux.rootfs-resize-integration =
+      assert lib.elem "multi-user.target" nixosConfigurations.nixos.config.systemd.services.qubes-rootfs-resize.wantedBy;
+        pkgs.runCommand "rootfs-resize-integration-check" {} ''
+          agent=${pkgs.qubes-core-agent-linux}
+          resize_rpc="$agent/etc/qubes-rpc/qubes.ResizeDisk"
+
+          test -x "$agent/lib/qubes/resize-rootfs"
+          test -x "$resize_rpc"
+          grep -Fq "$agent/lib/qubes/resize-rootfs" "$resize_rpc"
+          ! grep -Fq /usr/lib/qubes/resize-rootfs "$resize_rpc"
+          touch "$out"
+        '';
+
     packages.x86_64-linux = pkgs;
   };
 }
