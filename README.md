@@ -101,7 +101,6 @@ Host github.com
 - using as netvm or usbvm
 - time sync via rpc ( currently handled is systemd-timesyncd, but per vm ntp sync creates more attack surface area? )
 - audio
-- grow root fs
 
 ### bugs
 - memory resizing seems to cause crashes in ff

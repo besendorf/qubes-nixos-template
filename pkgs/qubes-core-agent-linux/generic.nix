@@ -68,6 +68,7 @@
     scripts_using_functions
     ++ [
       "etc/qubes-rpc/qubes.Filecopy"
+      "etc/qubes-rpc/qubes.ResizeDisk"
       "etc/qubes-rpc/qubes.VMShell"
       "etc/qubes-rpc/qubes.WaitForSession"
       "lib/qubes/init/functions"

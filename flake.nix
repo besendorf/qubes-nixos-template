@@ -112,6 +112,19 @@
           touch "$out"
         '';
 
+    checks.x86_64-linux.rootfs-resize-integration =
+      assert lib.elem "multi-user.target" nixosConfigurations.nixos.config.systemd.services.qubes-rootfs-resize.wantedBy;
+        pkgs.runCommand "rootfs-resize-integration-check" {} ''
+          agent=${pkgs.qubes-core-agent-linux}
+          resize_rpc="$agent/etc/qubes-rpc/qubes.ResizeDisk"
+
+          test -x "$agent/lib/qubes/resize-rootfs"
+          test -x "$resize_rpc"
+          grep -Fq "$agent/lib/qubes/resize-rootfs" "$resize_rpc"
+          ! grep -Fq /usr/lib/qubes/resize-rootfs "$resize_rpc"
+          touch "$out"
+        '';
+
     # Expose only the custom qubes packages (not all of nixpkgs) so that
     # `nix build .#rpm` resolves to the template RPM above rather than being
     # shadowed by `pkgs.rpm` within nixpkgs.
