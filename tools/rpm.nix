@@ -61,6 +61,7 @@ in
       ln -s ${rootImg}/nixos.img qubeized_images/nixos/root.img
 
       cp -r ${../appmenus} appmenus
+      chmod -R u+w appmenus
       cp template_generic.conf template.conf
 
       date +"%Y%m%d%H%M" > build_timestamp_nixos
