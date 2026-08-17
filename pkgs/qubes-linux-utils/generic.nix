@@ -25,7 +25,7 @@
     src = fetchFromGitHub {
       owner = "QubesOS";
       repo = name;
-      rev = "v${version}";
+      tag = "v${version}";
       inherit hash;
     };
 

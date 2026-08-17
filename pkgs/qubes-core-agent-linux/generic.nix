@@ -102,7 +102,7 @@ in
     src = fetchFromGitHub {
       owner = "QubesOS";
       repo = "qubes-core-agent-linux";
-      rev = "v${version}";
+      tag = "v${version}";
       inherit hash;
     };
 
