@@ -2,25 +2,27 @@ diff --git a/nix_update/version/github.py b/nix_update/version/github.py
 index 75c70a3..88007ea 100644
 --- a/nix_update/version/github.py
 +++ b/nix_update/version/github.py
-@@ -86,7 +86,9 @@ def fetch_github_versions(
-         return []
+@@ -87,7 +87,10 @@
      owner, repo = urlmatch.group("owner"), urlmatch.group("repo")
      if extra_args is not None and extra_args.get("use_github_releases"):
--        return fetch_github_versions_from_releases(url, owner, repo)
+         limit = extra_args.get("github_releases_limit", DEFAULT_RELEASES_LIMIT)
+-        return fetch_github_versions_from_releases(url, owner, repo, limit)
 +        return fetch_github_versions_from_releases(
-+            url, owner, repo
-+        ) or fetch_github_versions_from_tags(url, owner, repo)
++            url, owner, repo, limit
++        ) or fetch_github_versions_from_tags(url, owner, repo, limit)
++
      return fetch_github_versions_from_feed(url, owner, repo)
  
  
-@@ -117,6 +119,33 @@ def fetch_github_versions_from_releases(
-     return [Version(r["tag_name"], r["prerelease"]) for r in releases]
+@@ -131,6 +134,35 @@
+     return versions
  
  
 +def fetch_github_versions_from_tags(
 +    url: ParseResult,
 +    owner: str,
 +    repo: str,
++    limit: int,
 +) -> list[Version]:
 +    github_url = f"https://api.github.com/repos/{owner}/{repo}/tags?per_page=100"
 +    if url.netloc not in {"github.com", "api.github.com"}:
@@ -29,6 +31,7 @@ index 75c70a3..88007ea 100644
 +        )
 +
 +    # TODO: pagination?
++    # TODO: implement limit parameter
 +    token = os.environ.get("GITHUB_TOKEN")
 +    extra_headers = {} if token is None else {"Authorization": f"Bearer {token}"}
 +

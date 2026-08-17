@@ -5,14 +5,14 @@
   version,
   hash,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "qubes-gui-common";
   inherit version;
 
   src = fetchFromGitHub {
     owner = "QubesOS";
-    repo = pname;
-    rev = "v${version}";
+    repo = finalAttrs.pname;
+    tag = "v${finalAttrs.version}";
     inherit hash;
   };
 
@@ -25,11 +25,11 @@ stdenv.mkDerivation rec {
     cp include/*.h $out/include/
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Common files for Qubes GUI - protocol headers";
     homepage = "https://qubes-os.org";
-    license = licenses.gpl2Plus;
+    license = lib.licenses.gpl2Plus;
     maintainers = [];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
   };
-}
+})

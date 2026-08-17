@@ -6,14 +6,14 @@
   version,
   hash,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "qubes-core-vchan-xen";
   inherit version;
 
   src = fetchFromGitHub {
     owner = "QubesOS";
-    repo = pname;
-    rev = "v${version}";
+    repo = finalAttrs.pname;
+    tag = "v${finalAttrs.version}";
     inherit hash;
   };
 
@@ -29,11 +29,11 @@ stdenv.mkDerivation rec {
 
   env.CFLAGS = "-DHAVE_XC_DOMAIN_GETINFO_SINGLE";
 
-  meta = with lib; {
+  meta = {
     description = "Libraries required for the higher-level Qubes daemons and tools";
     homepage = "https://qubes-os.org";
-    license = licenses.gpl2Plus;
+    license = lib.licenses.gpl2Plus;
     maintainers = [];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
   };
-}
+})

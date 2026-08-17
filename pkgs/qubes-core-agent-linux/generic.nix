@@ -45,7 +45,7 @@
   umount,
   util-linux,
   xdg-utils,
-  xorg,
+  libx11,
   zenity,
   # FIXME networking optional
   networkmanager,
@@ -93,7 +93,7 @@
       "bin/qvm-run-vm"
     ];
 in
-  resholve.mkDerivation rec {
+  resholve.mkDerivation (finalAttrs: {
     inherit version;
     pname = "qubes-core-agent-linux";
 
@@ -102,7 +102,7 @@ in
     src = fetchFromGitHub {
       owner = "QubesOS";
       repo = "qubes-core-agent-linux";
-      rev = "v${version}";
+      tag = "v${finalAttrs.version}";
       inherit hash;
     };
 
@@ -122,7 +122,7 @@ in
         qubes-linux-utils
         shared-mime-info
         wrapGAppsNoGuiHook
-        xorg.libX11
+        libx11
       ]
       ++ (with python3Packages; [
         wrapPython
@@ -529,11 +529,11 @@ if "XDG_DATA_DIRS" not in os.environ:
       wrapPythonProgramsIn "$out/etc/qubes-rpc" ""
     '';
 
-    meta = with lib; {
+    meta = {
       description = "The Qubes core files for installation inside a Qubes VM";
       homepage = "https://qubes-os.org";
-      license = licenses.gpl2Plus;
+      license = lib.licenses.gpl2Plus;
       maintainers = [];
-      platforms = platforms.linux;
+      platforms = lib.platforms.linux;
     };
-  }
+  })

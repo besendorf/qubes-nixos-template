@@ -15,14 +15,14 @@
 }: let
   qubesdb-cmds = "qubesdb-read qubesdb-write qubesdb-rm qubesdb-multiread qubesdb-list qubesdb-watch";
 in
-  stdenv.mkDerivation rec {
+  stdenv.mkDerivation (finalAttrs: {
     pname = "qubes-core-qubesdb";
     inherit version;
 
     src = fetchFromGitHub {
       owner = "QubesOS";
-      repo = pname;
-      rev = "v${version}";
+      repo = finalAttrs.pname;
+      tag = "v${finalAttrs.version}";
       inherit hash;
     };
 
@@ -61,11 +61,11 @@ in
       done
     '';
 
-    meta = with lib; {
+    meta = {
       description = "QubesDB libs and daemon service";
       homepage = "https://qubes-os.org";
-      license = licenses.gpl2Plus;
+      license = lib.licenses.gpl2Plus;
       maintainers = [];
-      platforms = platforms.linux;
+      platforms = lib.platforms.linux;
     };
-  }
+  })

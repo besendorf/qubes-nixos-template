@@ -18,14 +18,14 @@
   hash,
 }: let
   name = "qubes-linux-utils";
-  resholved = resholve.mkDerivation rec {
+  resholved = resholve.mkDerivation (finalAttrs: {
     inherit version;
     pname = "${name}-resholved";
 
     src = fetchFromGitHub {
       owner = "QubesOS";
       repo = name;
-      rev = "v${version}";
+      tag = "v${finalAttrs.version}";
       inherit hash;
     };
 
@@ -100,14 +100,14 @@
       };
     };
 
-    meta = with lib; {
+    meta = {
       description = "Common Linux files for Qubes VM.";
       homepage = "https://qubes-os.org";
-      license = licenses.gpl2Plus;
+      license = lib.licenses.gpl2Plus;
       maintainers = [];
-      platforms = platforms.linux;
+      platforms = lib.platforms.linux;
     };
-  };
+  });
 in
   # FIXME stupid hack, can't figure out how to do these fixups otherwise
   lib.extendDerivation true {} (stdenv.mkDerivation {

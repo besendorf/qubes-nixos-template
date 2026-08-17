@@ -16,14 +16,14 @@
   version,
   hash,
 }:
-resholve.mkDerivation rec {
+resholve.mkDerivation (finalAttrs: {
   pname = "qubes-core-qrexec";
   inherit version;
 
   src = fetchFromGitHub {
     owner = "QubesOS";
-    repo = pname;
-    rev = "v${version}";
+    repo = "qubes-core-qrexec";
+    tag = "v${finalAttrs.version}";
     inherit hash;
   };
 
@@ -76,11 +76,11 @@ resholve.mkDerivation rec {
     };
   };
 
-  meta = with lib; {
+  meta = {
     description = "The Qubes qrexec files (qube side)";
     homepage = "https://qubes-os.org";
-    license = licenses.gpl2Plus;
+    license = lib.licenses.gpl2Plus;
     maintainers = [];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
   };
-}
+})
