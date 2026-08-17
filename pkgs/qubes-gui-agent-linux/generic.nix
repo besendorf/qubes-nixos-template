@@ -35,7 +35,17 @@
   xen,
   xfce4-settings,
   xfconf,
-  xorg,
+  libXdamage,
+  libXcomposite,
+  utilmacros,
+  xorgserver,
+  libXcursor,
+  libXfixes,
+  xinit,
+  xrandr,
+  xprop,
+  xsetroot,
+  setxkbmap,
   zenity,
   version,
   hash,
@@ -72,13 +82,11 @@ resholve.mkDerivation rec {
       qubes-core-vchan-xen
       qubes-core-qubesdb
       xen
-    ]
-    ++ (with xorg; [
       libXdamage
       libXcomposite
       utilmacros
       xorgserver
-    ]);
+    ];
 
   buildInputs =
     [
@@ -93,8 +101,6 @@ resholve.mkDerivation rec {
       systemd
       xfconf
       # xdg-user-dirs-update
-    ]
-    ++ (with xorg; [
       libXcomposite
       libXcursor
       libXdamage
@@ -103,7 +109,7 @@ resholve.mkDerivation rec {
       xrandr
       xprop
       xsetroot
-    ]);
+    ];
 
   postPatch = ''
     rm -f pulse/pulsecore
@@ -138,14 +144,14 @@ resholve.mkDerivation rec {
     substituteInPlace "$out/usr/lib/qubes/qubes-keymap.sh" \
       --replace '/usr/bin/qubesdb-read' '${qubes-core-qubesdb}/bin/qubesdb-read' \
       --replace 'while qubesdb-watch ' 'while ${qubes-core-qubesdb}/bin/qubesdb-watch ' \
-      --replace '        setxkbmap ' '        ${xorg.setxkbmap}/bin/setxkbmap '
+      --replace '        setxkbmap ' '        ${setxkbmap}/bin/setxkbmap '
 
     # these are nested within runuser calls, easier to just substituteInPlace
     # and pretend to resholve that runuser is not executing it's args
     substituteInPlace "$out/usr/bin/qubes-run-xorg" --replace ' /bin/sh' ' ${bash}/bin/sh'
-    substituteInPlace "$out/usr/bin/qubes-run-xorg" --replace '/usr/bin/xinit' '${xorg.xinit}/bin/xinit'
+    substituteInPlace "$out/usr/bin/qubes-run-xorg" --replace '/usr/bin/xinit' '${xinit}/bin/xinit'
     # skip the wrapper since it's just to determine which binary to call
-    substituteInPlace "$out/usr/bin/qubes-run-xorg" --replace '/usr/lib/qubes/qubes-xorg-wrapper' "${xorg.xorgserver}/bin/Xorg"
+    substituteInPlace "$out/usr/bin/qubes-run-xorg" --replace '/usr/lib/qubes/qubes-xorg-wrapper' "${xorgserver}/bin/Xorg"
 
     # config file template and rendered config relocation
     substituteInPlace "$out/usr/bin/qubes-run-xorg" --replace '/etc/X11/xorg-qubes.conf.template' "$out/etc/X11/xorg-qubes.conf.template"
@@ -166,9 +172,9 @@ resholve.mkDerivation rec {
 
     cat >> $out/etc/X11/xorg-qubes.conf.template <<EOF
     Section "Files"
-      ModulePath "${xorg.xorgserver}/lib/xorg/modules"
-      ModulePath "${xorg.xorgserver}/lib/xorg/modules/extensions"
-      ModulePath "${xorg.xorgserver}/lib/xorg/modules/drivers"
+      ModulePath "${xorgserver}/lib/xorg/modules"
+      ModulePath "${xorgserver}/lib/xorg/modules/extensions"
+      ModulePath "${xorgserver}/lib/xorg/modules/drivers"
       ModulePath "$out/lib/xorg/modules/drivers"
     EndSection
     EOF
@@ -222,9 +228,9 @@ resholve.mkDerivation rec {
         which
         xfce4-settings
         xfconf
-        xorg.xprop
-        xorg.xinit
-        xorg.xsetroot
+        xprop
+        xinit
+        xsetroot
       ];
       keep = {
         source = [
