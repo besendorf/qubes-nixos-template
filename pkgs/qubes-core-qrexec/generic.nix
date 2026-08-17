@@ -22,8 +22,8 @@ resholve.mkDerivation rec {
 
   src = fetchFromGitHub {
     owner = "QubesOS";
-    repo = pname;
-    rev = "v${version}";
+    repo = "qubes-core-qrexec";
+    tag = "v${version}";
     inherit hash;
   };
 
