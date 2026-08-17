@@ -6,14 +6,14 @@
   version,
   hash,
 }:
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "qubes-core-vchan-xen";
   inherit version;
 
   src = fetchFromGitHub {
     owner = "QubesOS";
-    repo = pname;
-    tag = "v${version}";
+    repo = finalAttrs.pname;
+    tag = "v${finalAttrs.version}";
     inherit hash;
   };
 
@@ -36,4 +36,4 @@ stdenv.mkDerivation rec {
     maintainers = [];
     platforms = lib.platforms.linux;
   };
-}
+})

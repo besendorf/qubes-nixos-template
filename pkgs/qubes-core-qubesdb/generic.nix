@@ -15,14 +15,14 @@
 }: let
   qubesdb-cmds = "qubesdb-read qubesdb-write qubesdb-rm qubesdb-multiread qubesdb-list qubesdb-watch";
 in
-  stdenv.mkDerivation rec {
+  stdenv.mkDerivation (finalAttrs: {
     pname = "qubes-core-qubesdb";
     inherit version;
 
     src = fetchFromGitHub {
       owner = "QubesOS";
-      repo = pname;
-      tag = "v${version}";
+      repo = finalAttrs.pname;
+      tag = "v${finalAttrs.version}";
       inherit hash;
     };
 
@@ -68,4 +68,4 @@ in
       maintainers = [];
       platforms = lib.platforms.linux;
     };
-  }
+  })

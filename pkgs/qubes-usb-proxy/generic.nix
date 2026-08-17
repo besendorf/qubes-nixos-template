@@ -14,14 +14,14 @@
   version,
   hash,
 }:
-resholve.mkDerivation rec {
+resholve.mkDerivation (finalAttrs: {
   pname = "qubes-usb-proxy";
   inherit version;
 
   src = fetchFromGitHub {
     owner = "QubesOS";
     repo = "qubes-app-linux-usb-proxy";
-    tag = "v${version}";
+    tag = "v${finalAttrs.version}";
     inherit hash;
   };
 
@@ -113,4 +113,4 @@ resholve.mkDerivation rec {
     maintainers = [];
     platforms = lib.platforms.linux;
   };
-}
+})

@@ -16,14 +16,14 @@
   version,
   hash,
 }:
-resholve.mkDerivation rec {
+resholve.mkDerivation (finalAttrs: {
   pname = "qubes-core-qrexec";
   inherit version;
 
   src = fetchFromGitHub {
     owner = "QubesOS";
     repo = "qubes-core-qrexec";
-    tag = "v${version}";
+    tag = "v${finalAttrs.version}";
     inherit hash;
   };
 
@@ -83,4 +83,4 @@ resholve.mkDerivation rec {
     maintainers = [];
     platforms = lib.platforms.linux;
   };
-}
+})

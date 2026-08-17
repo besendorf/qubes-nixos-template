@@ -6,14 +6,14 @@
   gnupg,
   pandoc,
 }:
-resholve.mkDerivation rec {
+resholve.mkDerivation (finalAttrs: {
   pname = "qubes-gpg-split";
   version = "2.0.86";
 
   src = fetchFromGitHub {
     owner = "QubesOS";
     repo = "qubes-app-linux-split-gpg";
-    tag = "v${version}";
+    tag = "v${finalAttrs.version}";
     hash = "sha256-ho5xEiNBbjMmSd1x7VHO/KXadhJmn0U6sMEUUw0WQUo=";
   };
 
@@ -81,4 +81,4 @@ resholve.mkDerivation rec {
       ];
     };
   };
-}
+})

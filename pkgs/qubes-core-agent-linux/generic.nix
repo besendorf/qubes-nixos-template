@@ -93,7 +93,7 @@
       "bin/qvm-run-vm"
     ];
 in
-  resholve.mkDerivation rec {
+  resholve.mkDerivation (finalAttrs: {
     inherit version;
     pname = "qubes-core-agent-linux";
 
@@ -102,7 +102,7 @@ in
     src = fetchFromGitHub {
       owner = "QubesOS";
       repo = "qubes-core-agent-linux";
-      tag = "v${version}";
+      tag = "v${finalAttrs.version}";
       inherit hash;
     };
 
@@ -536,4 +536,4 @@ if "XDG_DATA_DIRS" not in os.environ:
       maintainers = [];
       platforms = lib.platforms.linux;
     };
-  }
+  })
