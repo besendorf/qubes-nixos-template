@@ -5,8 +5,9 @@
   ...
 }: let
   cfg = config.services.qubes.core;
+  inherit (lib) mkOption mkEnableOption types literalExpression mkIf;
 in
-  with lib; {
+  {
     options.services.qubes.core = {
       enable = mkEnableOption "the core qubes services";
       networking = mkEnableOption "include core qubes networking services";
