@@ -25,11 +25,11 @@ stdenv.mkDerivation rec {
     cp include/*.h $out/include/
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Common files for Qubes GUI - protocol headers";
     homepage = "https://qubes-os.org";
-    license = licenses.gpl2Plus;
+    license = lib.licenses.gpl2Plus;
     maintainers = [];
-    platforms = platforms.linux;
+    platforms = lib.platforms.linux;
   };
 }

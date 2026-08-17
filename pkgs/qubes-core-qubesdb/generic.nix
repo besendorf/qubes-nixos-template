@@ -61,11 +61,11 @@ in
       done
     '';
 
-    meta = with lib; {
+    meta = {
       description = "QubesDB libs and daemon service";
       homepage = "https://qubes-os.org";
-      license = licenses.gpl2Plus;
+      license = lib.licenses.gpl2Plus;
       maintainers = [];
-      platforms = platforms.linux;
+      platforms = lib.platforms.linux;
     };
   }

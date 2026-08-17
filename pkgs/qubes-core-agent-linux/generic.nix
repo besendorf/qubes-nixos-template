@@ -529,11 +529,11 @@ if "XDG_DATA_DIRS" not in os.environ:
       wrapPythonProgramsIn "$out/etc/qubes-rpc" ""
     '';
 
-    meta = with lib; {
+    meta = {
       description = "The Qubes core files for installation inside a Qubes VM";
       homepage = "https://qubes-os.org";
-      license = licenses.gpl2Plus;
+      license = lib.licenses.gpl2Plus;
       maintainers = [];
-      platforms = platforms.linux;
+      platforms = lib.platforms.linux;
     };
   }
