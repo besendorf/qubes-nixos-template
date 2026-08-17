@@ -45,7 +45,7 @@
   umount,
   util-linux,
   xdg-utils,
-  xorg,
+  libx11,
   zenity,
   # FIXME networking optional
   networkmanager,
@@ -122,7 +122,7 @@ in
         qubes-linux-utils
         shared-mime-info
         wrapGAppsNoGuiHook
-        xorg.libX11
+        libx11
       ]
       ++ (with python3Packages; [
         wrapPython
