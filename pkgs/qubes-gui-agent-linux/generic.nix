@@ -56,7 +56,7 @@ resholve.mkDerivation (finalAttrs: {
 
   src = fetchFromGitHub {
     owner = "QubesOS";
-    repo = finalAttrs.pname;
+    repo = "qubes-gui-agent-linux";
     rev = "v${finalAttrs.version}";
     inherit hash;
   };
