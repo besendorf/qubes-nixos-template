@@ -22,7 +22,7 @@ in
     src = fetchFromGitHub {
       owner = "QubesOS";
       repo = pname;
-      rev = "v${version}";
+      tag = "v${version}";
       inherit hash;
     };
 

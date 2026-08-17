@@ -12,7 +12,7 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "QubesOS";
     repo = pname;
-    rev = "v${version}";
+    tag = "v${version}";
     inherit hash;
   };
 

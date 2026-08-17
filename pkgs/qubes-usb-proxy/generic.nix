@@ -21,7 +21,7 @@ resholve.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "QubesOS";
     repo = "qubes-app-linux-usb-proxy";
-    rev = "v${version}";
+    tag = "v${version}";
     inherit hash;
   };
 
